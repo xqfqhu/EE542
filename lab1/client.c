@@ -12,6 +12,7 @@ int main(int argc, char **argv)
     int clientfd;
     struct addrinfo hints, *listp, *p;
     char buf[MAXLINE];
+    rio_t rio;
     
     
     if (argc != 3) {
@@ -22,7 +23,6 @@ int main(int argc, char **argv)
     hints.ai_socktype = SOCK_STREAM;  
     hints.ai_flags = AI_NUMERICSERV; 
     hints.ai_flags |= AI_ADDRCONFIG;
-    printf("%s %s\n", argv[1], argv[2]);
     getaddrinfo(argv[1], argv[2], &hints, &listp);
 
     for (p = listp; p; p = p->ai_next) {
@@ -38,17 +38,23 @@ int main(int argc, char **argv)
             return -1;
         } 
     } 
-    
+    freeaddrinfo(listp);
+    if (!p) 
+        return -1;
     
 
     
+    Rio_readinitb(&rio, serverfd);
 
-    while (1){
-        getline(buf, &len, stdin);
-        write(serverfd, buf, len);
+    while (Fgets(buf, MAXLINE, stdin) != NULL){
+        
+        
+        Rio_writen(serverfd, buf, strlen(buf));
+        Rio_readlineb(&rio, buf, MAXLINE);
+        Fputs(buf, stdout);
     }
-
-  
+    Close(serverfd);
+    exit(0);
 
 
 
