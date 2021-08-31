@@ -28,17 +28,8 @@ int main(int argc, char **argv)
         /* accept request from client */
         clientlen = sizeof(clientaddr);
         clientfd = Accept(listenfd, (struct sockaddr *) &clientaddr, &clientlen);
-        Getnameinfo((struct sockaddr *) &clientaddr, clientlen, client_hostname, MAXLINE, 
-                    client_port, MAXLINE, 0);
-        printf("Accepted connection from (%s, %s)\n", client_hostname, client_port);
         sbuf_insert(&sbuf, clientfd);
     }
-
-    printf("%s", user_agent_hdr);
-
-
-
-    return 0;
 }
 static void * thread(void *vargp){
 
@@ -57,11 +48,9 @@ static void serve_client(int clientfd){
     char buf_from[MAXLINE];
     int length;
     Rio_readinitb(&rio_from, clientfd);
-    while (Fgets(buf_from, MAXLINE, stdin) != NULL) {
-        printf("aaa: %s\n", buf_from);
-        Rio_writen(clientfd, buf_from, strlen(buf_from));
-        Rio_readlineb(&rio_from, buf_from, MAXLINE);
-        Fputs(buf_from, stdout);
+    while ((length = Rio_readlineb(&rio_from, buf_from, MAXLINE)) != 0 ) {
+        
+        Rio_writen(clientfd, buf_from, length);
     }
 }
 
